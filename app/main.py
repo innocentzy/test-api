@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends
+from fastapi.exceptions import HTTPException
 from sqlalchemy.orm import Session
 from . import models, schemas, database
 
@@ -9,12 +10,12 @@ app = FastAPI()
 def get_questions(db: Session = Depends(database.get_db)):
     return db.query(models.Question).all()
 
-@app.post("/questions", response_model=schemas.QuestionRead | None)
+@app.post("/questions", response_model=schemas.QuestionRead)
 def post_questions(question: schemas.QuestionCreate, db: Session = Depends(database.get_db)):
     question_from_db = db.query(models.Question).filter(models.Question.text == question.text).first()
 
     if question_from_db:
-        return None
+        raise HTTPException(status_code=404, detail="Question already exists")
     else:
         question_from_db = models.Question(text=question.text)
         db.add(question_from_db)
@@ -24,11 +25,24 @@ def post_questions(question: schemas.QuestionCreate, db: Session = Depends(datab
 
 @app.get("/questions/{id}", response_model=schemas.QuestionRead)
 def get_question_by_id(id: int, db: Session = Depends(database.get_db)):
-    return db.query(models.Question).filter(models.Question.id == id).first()
+    question_from_db = db.query(models.Question).filter(models.Question.id == id).first()
 
-@app.delete("/questions/{id}")
-def delete_question_by_id(id: int):
-    pass
+    if question_from_db is None:
+        raise HTTPException(status_code=404, detail="Question not found")
+    else:
+        return question_from_db
+
+@app.delete("/questions/{id}", response_model=schemas.QuestionDelete)
+def delete_question_by_id(id: int, db: Session = Depends(database.get_db)):
+    question_from_db = db.query(models.Question).filter(models.Question.id == id).first()
+
+    if question_from_db is None:                                                              # Если day не найден
+        raise HTTPException(status_code=404, detail="Question not found")
+    else:
+        db.delete(question_from_db)
+
+    db.commit()
+    return question_from_db
 
 # Ответы
 @app.post("/questions/{id}/answers")
