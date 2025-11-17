@@ -29,7 +29,7 @@ def get_question_by_id(id: int, db: Session = Depends(database.get_db)):
     question_from_db = db.query(models.Question).filter(models.Question.id == id).first()
 
     if question_from_db is None:
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise HTTPException(status_code=400, detail="Question not found")
     else:
         return question_from_db
 
@@ -38,7 +38,7 @@ def delete_question_by_id(id: int, db: Session = Depends(database.get_db)):
     question_from_db = db.query(models.Question).filter(models.Question.id == id).first()
 
     if question_from_db is None:                                                              # Если day не найден
-        raise HTTPException(status_code=404, detail="Question not found")
+        raise HTTPException(status_code=400, detail="Question not found")
     else:
         db.delete(question_from_db)
 
@@ -50,7 +50,9 @@ def delete_question_by_id(id: int, db: Session = Depends(database.get_db)):
 def post_answer(id: str, answer: schemas.AnswerCreate, db: Session = Depends(database.get_db)):
     answer_from_db = db.query(models.Answer).filter(and_(models.Answer.question_id == id, models.Answer.text == answer.text)).first()
     
-    if answer_from_db:
+    if db.query(models.Question).filter(models.Question.id == id).first() is None:
+        raise HTTPException(status_code=400, detail="This question does not exist")
+    elif answer_from_db:
         raise HTTPException(status_code=400, detail="This answer already exists")
     else:
         answer_from_db = models.Answer(question_id=id, user_id=answer.user_id, text=answer.text)
@@ -64,7 +66,7 @@ def get_answer_by_id(id: int, db: Session = Depends(database.get_db)):
     answer_from_db = db.query(models.Answer).filter(models.Answer.id == id).first()
 
     if answer_from_db is None:
-        raise HTTPException(status_code=404, detail="This answer does not exist")
+        raise HTTPException(status_code=400, detail="This answer does not exist")
     else:
         return answer_from_db
 
@@ -73,7 +75,7 @@ def delete_answer_by_id(id: int, db: Session = Depends(database.get_db)):
     answer_from_db = db.query(models.Answer).filter(models.Answer.id == id).first()
 
     if answer_from_db is None:
-        raise HTTPException(status_code=404, detail="This answer does not exist")
+        raise HTTPException(status_code=400, detail="This answer does not exist")
     else:
         db.delete(answer_from_db)
 

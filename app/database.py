@@ -5,8 +5,8 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-# DATABASE_URL = "sqlite:///database.db"
-DATABASE_URL = f"postgresql+psycopg2://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+
+DATABASE_URL = os.getenv("DB_URL")
 
 engine = create_engine(DATABASE_URL)                                                # Подключение к базе данных
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)         # Создание сессии для работы с БД
