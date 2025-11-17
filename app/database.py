@@ -1,9 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from models import *
+from .models import *
 import os
+from dotenv import load_dotenv
 
-DATABASE_URL = f"postgresql+psycopg2://{os.environ.get('DB_USER')}:{os.environ.get('DB_PASS')}@{os.environ.get('DB_HOST')}:{os.environ.get('DB_PORT')}/{os.environ.get('DB_NAME')}"
+load_dotenv()
+DATABASE_URL = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASS')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
 
 engine = create_engine(DATABASE_URL)                                                # Подключение к базе данных
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)         # Создание сессии для работы с БД
