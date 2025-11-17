@@ -4,14 +4,13 @@ from datetime import datetime
 # Вопросы
 class QuestionBase(BaseModel):
     text: str
-    created_at: datetime
 
 class QuestionCreate(QuestionBase):
     pass
 
 class QuestionRead(QuestionBase):
     id: int
-
+    created_at: datetime
     class Config:
         from_attributes = True
 
