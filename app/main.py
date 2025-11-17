@@ -59,9 +59,14 @@ def post_answer(id: str, answer: schemas.AnswerCreate, db: Session = Depends(dat
         db.refresh(answer_from_db)
         return answer_from_db
 
-@app.get("/answers/{id}")
-def get_answer_by_id(id: int):
-    pass
+@app.get("/answers/{id}", response_model=schemas.AnswerRead)
+def get_answer_by_id(id: int, db: Session = Depends(database.get_db)):
+    answer_from_db = db.query(models.Answer).filter(models.Answer.id == id).first()
+
+    if answer_from_db is None:
+        raise HTTPException(status_code=404, detail="This answer does not exist")
+    else:
+        return answer_from_db
 
 @app.delete("/answers/{id}")
 def delete_answer_by_id(id: int):
