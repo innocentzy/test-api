@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Depends
 from fastapi.exceptions import HTTPException
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from . import models, schemas, database
 
@@ -15,7 +16,7 @@ def post_questions(question: schemas.QuestionCreate, db: Session = Depends(datab
     question_from_db = db.query(models.Question).filter(models.Question.text == question.text).first()
 
     if question_from_db:
-        raise HTTPException(status_code=404, detail="Question already exists")
+        raise HTTPException(status_code=400, detail="Question already exists")
     else:
         question_from_db = models.Question(text=question.text)
         db.add(question_from_db)
@@ -45,9 +46,18 @@ def delete_question_by_id(id: int, db: Session = Depends(database.get_db)):
     return question_from_db
 
 # Ответы
-@app.post("/questions/{id}/answers")
-def post_answer(id: int):
-    pass
+@app.post("/questions/{id}/answers", response_model=schemas.AnswerRead)
+def post_answer(id: str, answer: schemas.AnswerCreate, db: Session = Depends(database.get_db)):
+    answer_from_db = db.query(models.Answer).filter(and_(models.Answer.question_id == id, models.Answer.text == answer.text)).first()
+    
+    if answer_from_db:
+        raise HTTPException(status_code=400, detail="This answer already exists")
+    else:
+        answer_from_db = models.Answer(question_id=id, user_id=answer.user_id, text=answer.text)
+        db.add(answer_from_db)
+        db.commit()
+        db.refresh(answer_from_db)
+        return answer_from_db
 
 @app.get("/answers/{id}")
 def get_answer_by_id(id: int):

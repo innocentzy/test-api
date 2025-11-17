@@ -20,14 +20,15 @@ class QuestionDelete(QuestionBase):
 # Ответы
 class AnswerBase(BaseModel):
     text: str
-    created_at: datetime
 
 class AnswerCreate(AnswerBase):
-    question_id: int
     user_id: str
 
 class AnswerRead(AnswerBase):
     id: int
+    created_at: datetime
+    question_id: int
+    user_id: str
 
     class Config:
         from_attributes = True
